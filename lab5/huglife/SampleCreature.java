@@ -37,7 +37,7 @@ public class SampleCreature extends Creature {
     /**
      * probability of taking a move when ample space available.
      */
-    private double moveProbability = 0.2;
+    private double moveProbability = 0.1;
     /**
      * degree of color shift to allow.
      */
@@ -125,6 +125,7 @@ public class SampleCreature extends Creature {
             return new Action(Action.ActionType.MOVE, Direction.RIGHT);
         } else {
             return new Action(Action.ActionType.STAY);
+            //return new Action(Action.ActionType.REPLICATE, Direction.TOP);
         }
     }
 
