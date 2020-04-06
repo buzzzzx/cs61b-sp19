@@ -1,17 +1,16 @@
 package es.datastructur.synthesizer;
 import java.util.Iterator;
 
-//TODO: Make sure to that this class and all of its methods are public
-//TODO: Make sure to add the override tag for all overridden methods
-//TODO: Make sure to make this class implement BoundedQueue<T>
 
-public class ArrayRingBuffer<T>  {
+public class ArrayRingBuffer<T> implements BoundedQueue<T>  {
     /* Index for the next dequeue or peek. */
     private int first;
     /* Index for the next enqueue. */
     private int last;
     /* Variable for the fillCount. */
     private int fillCount;
+    /* Variable for the capacity of buffer. */
+    private int capacity;
     /* Array for storing the buffer data. */
     private T[] rb;
 
@@ -19,41 +18,133 @@ public class ArrayRingBuffer<T>  {
      * Create a new ArrayRingBuffer with the given capacity.
      */
     public ArrayRingBuffer(int capacity) {
-        // TODO: Create new array with capacity elements.
-        //       first, last, and fillCount should all be set to 0.
+        rb = (T[]) new Object[capacity];
+        fillCount = 0;
+        first = 0;
+        last = 0;
+        this.capacity = capacity;
+    }
+
+    /**
+     * returns size of the buffer.
+     */
+    @Override
+    public int capacity() {
+        return capacity;
+    }
+
+    /**
+     * returns number of items currently in the buffer.
+     */
+    @Override
+    public int fillCount() {
+        return fillCount;
+    }
+
+    /**
+     * helper method that plus one circularly.
+     */
+    private int plusOne(int n) {
+        return (n + 1) % capacity;
     }
 
     /**
      * Adds x to the end of the ring buffer. If there is no room, then
      * throw new RuntimeException("Ring buffer overflow").
      */
+    @Override
     public void enqueue(T x) {
-        // TODO: Enqueue the item. Don't forget to increase fillCount and update
-        //       last.
-        return;
+        if (isFull()) {
+            throw new RuntimeException("Ring buffer overflow.");
+        }
+        rb[last] = x;
+        last = plusOne(last);
+        fillCount += 1;
     }
 
     /**
      * Dequeue oldest item in the ring buffer. If the buffer is empty, then
      * throw new RuntimeException("Ring buffer underflow").
      */
+    @Override
     public T dequeue() {
-        // TODO: Dequeue the first item. Don't forget to decrease fillCount and
-        //       update first.
-        return null;
+        if (isEmpty()) {
+            throw new RuntimeException("Ring buffer underflow");
+        }
+        T item = rb[first];
+        rb[first] = null;
+        first = plusOne(first);
+        fillCount -= 1;
+
+        return item;
     }
 
     /**
      * Return oldest item, but don't remove it. If the buffer is empty, then
      * throw new RuntimeException("Ring buffer underflow").
      */
+    @Override
     public T peek() {
-        // TODO: Return the first item. None of your instance variables should
-        //       change.
-        return null;
+        if (isEmpty()) {
+            throw new RuntimeException("Ring buffer underflow");
+        }
+        T item = rb[first];
+
+        return item;
     }
 
-    // TODO: When you get to part 4, implement the needed code to support
-    //       iteration and equals.
+    @Override
+    public Iterator<T> iterator() {
+        return new ArrayRingBufferIterator();
+    }
+
+    private class ArrayRingBufferIterator implements Iterator<T> {
+        private int pos;
+
+        ArrayRingBufferIterator() {
+            pos = first;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return pos != last;
+        }
+
+        @Override
+        public T next() {
+            T returnItem = rb[pos];
+            pos = plusOne(pos);
+            return returnItem;
+        }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this) {
+            return true;
+        }
+        if (o == null) {
+            return false;
+        }
+        if (o.getClass() != this.getClass()) {
+            return false;
+        }
+
+        ArrayRingBuffer<T> other = (ArrayRingBuffer<T>) o;
+        if (other.fillCount() != this.fillCount()) {
+            return false;
+        }
+
+        Iterator<T> otherIterator = other.iterator();
+        Iterator<T> thisIterator = this.iterator();
+
+        while (otherIterator.hasNext() && otherIterator.hasNext()) {
+            if (thisIterator.next() != otherIterator.next()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
 }
-    // TODO: Remove all comments that say TODO when you're done.
