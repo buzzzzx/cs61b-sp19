@@ -170,7 +170,16 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V>, Iterabl
 
     @Override
     public V remove(K key, V value) {
-        throw new UnsupportedOperationException();
+        if (key == null) {
+            throw new IllegalArgumentException("Can't delete null.");
+        }
+        if (!get(key).equals(value)) {
+            return null;
+        } else {
+            root = remove(root, key);
+            size -= 1;
+        }
+        return value;
     }
 
     @Override
