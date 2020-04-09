@@ -1,5 +1,7 @@
 package hw3.hash;
 
+import edu.princeton.cs.algs4.In;
+import edu.princeton.cs.algs4.StdRandom;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -20,7 +22,7 @@ public class TestComplexOomage {
     /* This should pass if your OomageTestUtility.haveNiceHashCodeSpread
        is correct. This is true even though our given ComplexOomage class
        has a flawed hashCode. */
-    /*@Test
+    @Test
     public void testRandomOomagesHashCodeSpread() {
         List<Oomage> oomages = new ArrayList<>();
         int N = 10000;
@@ -30,20 +32,38 @@ public class TestComplexOomage {
         }
 
         assertTrue(OomageTestUtility.haveNiceHashCodeSpread(oomages, 10));
-    }*/
+    }
 
     /* TODO: Create a list of Complex Oomages called deadlyList
      * that shows the flaw in the hashCode function.
      */
-    /*
     @Test
     public void testWithDeadlyParams() {
         List<Oomage> deadlyList = new ArrayList<>();
 
         // Your code here.
+        int N = 5000;
+
+        for (int i = 0; i < N; i += 1) {
+            deadlyList.add(myRandomComplexOomage());
+        }
 
         assertTrue(OomageTestUtility.haveNiceHashCodeSpread(deadlyList, 10));
-    } */
+    }
+
+    private ComplexOomage myRandomComplexOomage() {
+
+        int N = 8;
+        ArrayList<Integer> params = new ArrayList<>(N);
+        for (int i = 0; i < N; i += 1) {
+            if (i > 3) {
+                params.add(14);
+            } else {
+                params.add(StdRandom.uniform(0, 255));
+            }
+        }
+        return new ComplexOomage(params);
+    }
 
     /** Calls tests for SimpleOomage. */
     public static void main(String[] args) {
