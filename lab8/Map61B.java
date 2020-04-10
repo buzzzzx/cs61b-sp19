@@ -1,3 +1,4 @@
+import java.util.HashMap;
 import java.util.Set;
 /**
  * Your implementation MyHashMap should implement this interface. To do so,
@@ -43,5 +44,6 @@ public interface Map61B<K, V> extends Iterable<K> {
      * throw an UnsupportedOperationException.
      */
     V remove(K key, V value);
+
 }
 
