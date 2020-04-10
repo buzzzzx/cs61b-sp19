@@ -1,9 +1,12 @@
+import java.util.LinkedList;
+import java.util.Queue;
+
 /**
  * A String-like class that allows users to add and remove characters in the String
  * in constant time and have a constant-time hash function. Used for the Rabin-Karp
  * string-matching algorithm.
  */
-class RollingString{
+class RollingString {
 
     /**
      * Number of total possible int values a character can take on.
@@ -17,13 +20,19 @@ class RollingString{
      */
     static final int PRIMEBASE = 6113;
 
+    private Queue<Character> queue;
+
     /**
      * Initializes a RollingString with a current value of String s.
      * s must be the same length as the maximum length.
      */
-    public RollingString(String s, int length) {
-        assert(s.length() == length);
+    RollingString(String s, int length) {
+        assert (s.length() == length);
         /* FIX ME */
+        queue = new LinkedList<>();
+        for (char c : s.toCharArray()) {
+            queue.offer(c);
+        }
     }
 
     /**
@@ -32,7 +41,8 @@ class RollingString{
      * Should be a constant-time operation.
      */
     public void addChar(char c) {
-        /* FIX ME */
+        queue.offer(c);
+        queue.poll();
     }
 
 
@@ -44,7 +54,10 @@ class RollingString{
     public String toString() {
         StringBuilder strb = new StringBuilder();
         /* FIX ME */
-        return "";
+        for (char c : queue) {
+            strb.append(c);
+        }
+        return strb.toString();
     }
 
     /**
@@ -53,7 +66,7 @@ class RollingString{
      */
     public int length() {
         /* FIX ME */
-        return -1;
+        return queue.size();
     }
 
 
@@ -65,7 +78,7 @@ class RollingString{
     @Override
     public boolean equals(Object o) {
         /* FIX ME */
-        return false;
+        return toString().equals(o.toString());
     }
 
     /**
@@ -75,6 +88,11 @@ class RollingString{
     @Override
     public int hashCode() {
         /* FIX ME */
-        return -1;
+        int h = 0;
+        for (char c : queue) {
+            h = (h * UNIQUECHARS + (int) c) % PRIMEBASE;
+        }
+
+        return h;
     }
 }
