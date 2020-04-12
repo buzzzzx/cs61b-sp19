@@ -8,6 +8,7 @@ public class RabinKarpAlgorithmTests {
         String pattern = "all";
         assertEquals(-1, RabinKarpAlgorithm.rabinKarp(input, pattern));
 
+
         String input1 = "hello world";
         String pattern1 = "orl";
         assertEquals(7, RabinKarpAlgorithm.rabinKarp(input1, pattern1));

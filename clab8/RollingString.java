@@ -22,6 +22,8 @@ class RollingString {
 
     private Queue<Character> queue;
 
+    private int hash;
+
     /**
      * Initializes a RollingString with a current value of String s.
      * s must be the same length as the maximum length.
@@ -33,6 +35,8 @@ class RollingString {
         for (char c : s.toCharArray()) {
             queue.offer(c);
         }
+
+        hash = 0;
     }
 
     /**
@@ -42,7 +46,14 @@ class RollingString {
      */
     public void addChar(char c) {
         queue.offer(c);
-        queue.poll();
+        char item = queue.poll();
+
+        hash = (int) (hash - (((int) item) * Math.pow(UNIQUECHARS, queue.size() - 1)) % PRIMEBASE);
+        hash = (hash * UNIQUECHARS + (int) c) % PRIMEBASE;
+
+        if (hash < 0) {
+            hash += PRIMEBASE;
+        }
     }
 
 
@@ -88,11 +99,15 @@ class RollingString {
     @Override
     public int hashCode() {
         /* FIX ME */
-        int h = 0;
-        for (char c : queue) {
-            h = (h * UNIQUECHARS + (int) c) % PRIMEBASE;
+        int h = hash;
+        if (h == 0) {
+            for (char c : queue) {
+                h = (h * UNIQUECHARS + (int) c) % PRIMEBASE;
+            }
+            hash = h;
         }
 
         return h;
     }
+
 }
