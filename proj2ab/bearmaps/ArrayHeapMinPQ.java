@@ -31,16 +31,6 @@ public class ArrayHeapMinPQ<T> implements ExtrinsicMinPQ<T> {
         public void setPriority(double priority) {
             this.priority = priority;
         }
-
-        @Override
-        public boolean equals(Object o) {
-            if (o == null || o.getClass() != this.getClass()) {
-                return false;
-            } else {
-                return ((ArrayHeapMinPQ.PriorityNode) o).getItem().equals(getItem());
-            }
-        }
-
     }
 
     /**

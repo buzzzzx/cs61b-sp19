@@ -69,10 +69,10 @@ public class ArrayHeapMinPQTest {
     public void testRuntime() {
         long startTime = System.currentTimeMillis();
         ArrayHeapMinPQ<Integer> minHeap = new ArrayHeapMinPQ<>();
-        for (int i = 0; i < 200000; i += 1) {
-            minHeap.add(i, 100000 - i);
+        for (int i = 0; i < 50000; i += 1) {
+            minHeap.add(i, 30000 - i);
         }
-        for (int i = 0; i < 200000; i += 1) {
+        for (int i = 0; i < 50000; i += 1) {
             minHeap.removeSmallest();
         }
         long endTime = System.currentTimeMillis();
@@ -81,10 +81,10 @@ public class ArrayHeapMinPQTest {
 
         long start2 = System.currentTimeMillis();
         NaiveMinPQ<Integer> naiveMinPQ = new NaiveMinPQ<>();
-        for (int j = 0; j < 200000; j += 1) {
-            naiveMinPQ.add(j, 100000 - j);
+        for (int j = 0; j < 50000; j += 1) {
+            naiveMinPQ.add(j, 30000 - j);
         }
-        for (int j = 0; j < 200000; j += 1) {
+        for (int j = 0; j < 50000; j += 1) {
             naiveMinPQ.removeSmallest();
         }
         long end2 = System.currentTimeMillis();
