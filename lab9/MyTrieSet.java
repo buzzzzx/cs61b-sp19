@@ -119,7 +119,21 @@ public class MyTrieSet implements TrieSet61B {
      */
     @Override
     public String longestPrefixOf(String key) {
-        throw new UnsupportedOperationException();
+        StringBuilder res = new StringBuilder();
+
+        int i;
+        Node curr = root;
+        for (i = 0; i < key.length(); i += 1) {
+            char c = key.charAt(i);
+            curr = curr.next.get(c);
+            if (curr != null) {
+                res.append(c);
+            } else {
+                break;
+            }
+        }
+
+        return res.toString();
     }
 
 }
