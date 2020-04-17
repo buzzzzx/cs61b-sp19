@@ -1,5 +1,6 @@
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.lang.reflect.Array;
 import java.util.*;
 
 public class SeparableEnemySolver {
@@ -23,8 +24,50 @@ public class SeparableEnemySolver {
      * Returns true if input is separable, false otherwise.
      */
     public boolean isSeparable() {
-        // TODO: Fix me
-        return false;
+        Set<String> firstGroup = new HashSet<>();
+        Set<String> secondGroup = new HashSet<>();
+        Set<String> marked = new HashSet<>();
+        Set<String> invitees = g.labels();
+
+        for (String vertex : invitees) {
+            if (!marked.contains(vertex)) {
+                Queue<String> fringe = new ArrayDeque<>();
+                marked.add(vertex);
+                fringe.add(vertex);
+                firstGroup.add(vertex);
+
+                while (!fringe.isEmpty()) {
+                    String v = fringe.remove();
+                    for (String n : g.neighbors(v)) {
+                        if (!marked.contains(n)) {
+                            marked.add(n);
+                            fringe.add(n);
+                            if (firstGroup.contains(v)) {
+                                secondGroup.add(n);
+                            } else {
+                                firstGroup.add(n);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return checkGroup(firstGroup) && checkGroup(secondGroup);
+    }
+
+    private boolean checkGroup(Set<String> group) {
+        Object[] groupArray = group.toArray();
+        int i, j;
+        for (i = 0; i < group.size(); i += 1) {
+            for (j = i + 1; j < group.size(); j += 1) {
+                if (g.neighbors((String) groupArray[i]).contains(groupArray[j])) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
 
