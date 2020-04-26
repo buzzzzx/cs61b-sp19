@@ -2,8 +2,10 @@ package bearmaps.proj2c;
 
 import bearmaps.hw4.streetmap.Node;
 import bearmaps.hw4.streetmap.StreetMapGraph;
+import bearmaps.lab9.MyTrieSet;
 import bearmaps.proj2ab.KDTree;
 import bearmaps.proj2ab.Point;
+import com.google.gson.internal.$Gson$Preconditions;
 
 import java.util.*;
 
@@ -17,15 +19,18 @@ import java.util.*;
 public class AugmentedStreetMapGraph extends StreetMapGraph {
 
     Map<Point, Long> pointIdMap;
+    Map<String, List<Node>> cleanedNameMapToListNode;
     KDTree kdTree;
+    MyTrieSet trieSet;
 
     public AugmentedStreetMapGraph(String dbPath) {
         super(dbPath);
         // You might find it helpful to uncomment the line below:
         List<Node> nodes = this.getNodes();
-
         List<Point> points = new LinkedList<>();
         pointIdMap = new HashMap<>();
+        cleanedNameMapToListNode = new HashMap<>();
+        trieSet = new MyTrieSet();
 
         for (Node node : nodes) {
             // only consider nodes with neighbors
@@ -33,6 +38,17 @@ public class AugmentedStreetMapGraph extends StreetMapGraph {
                 Point point = new Point(node.lon(), node.lat());
                 pointIdMap.put(point, node.id());
                 points.add(point);
+            }
+
+            // set up trieSet;
+            if (node.name() != null) {
+                String name = node.name();
+                String cleanedName = cleanString(name);
+                trieSet.add(cleanedName);
+                if (!cleanedNameMapToListNode.containsKey(cleanedName)) {
+                    cleanedNameMapToListNode.put(cleanedName, new LinkedList<>());
+                }
+                cleanedNameMapToListNode.get(cleanedName).add(node);
             }
         }
 
@@ -62,7 +78,17 @@ public class AugmentedStreetMapGraph extends StreetMapGraph {
      * cleaned <code>prefix</code>.
      */
     public List<String> getLocationsByPrefix(String prefix) {
-        return new LinkedList<>();
+        String cleanedPrefix = cleanString(prefix);
+        List<String> allCleaned = trieSet.keysWithPrefix(cleanedPrefix);
+        Set<String> res = new HashSet<>();
+
+        for (String cleaned : allCleaned) {
+            for (Node node : cleanedNameMapToListNode.get(cleaned)) {
+                res.add(node.name());
+            }
+        }
+
+        return new LinkedList<>(res);
     }
 
     /**
@@ -79,7 +105,20 @@ public class AugmentedStreetMapGraph extends StreetMapGraph {
      * "id" -> Number, The id of the node. <br>
      */
     public List<Map<String, Object>> getLocations(String locationName) {
-        return new LinkedList<>();
+        List<Map<String, Object>> res = new LinkedList<>();
+
+        List<Node> nodes = cleanedNameMapToListNode.get(cleanString(locationName));
+        if (nodes != null) {
+            for (Node node : nodes) {
+                Map<String, Object> nodeInfo = new HashMap<>();
+                nodeInfo.put("lat", node.lat());
+                nodeInfo.put("lon", node.lon());
+                nodeInfo.put("name", node.name());
+                nodeInfo.put("id", node.id());
+                res.add(nodeInfo);
+            }
+        }
+        return res;
     }
 
 
