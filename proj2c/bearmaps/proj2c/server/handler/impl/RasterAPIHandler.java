@@ -17,8 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static bearmaps.proj2c.utils.Constants.SEMANTIC_STREET_GRAPH;
-import static bearmaps.proj2c.utils.Constants.ROUTE_LIST;
+import static bearmaps.proj2c.utils.Constants.*;
 
 /**
  * Handles requests from the web browser for map images. These images
@@ -84,12 +83,153 @@ public class RasterAPIHandler extends APIRouteHandler<Map<String, Double>, Map<S
      */
     @Override
     public Map<String, Object> processRequest(Map<String, Double> requestParams, Response response) {
-        //System.out.println("yo, wanna know the parameters given by the web browser? They are:");
-        //System.out.println(requestParams);
+        System.out.println("yo, wanna know the parameters given by the web browser? They are:");
+        System.out.println(requestParams);
         Map<String, Object> results = new HashMap<>();
-        System.out.println("Since you haven't implemented RasterAPIHandler.processRequest, nothing is displayed in "
-                + "your browser.");
+        // System.out.println("Since you haven't implemented RasterAPIHandler.processRequest, nothing is displayed in "
+        //        + "your browser.");
+
+        // initial result key-values.
+        String[][] renderGrid;
+        double rasterULLon;
+        double rasterULLat;
+        double rasterLRLon;
+        double rasterLRLat;
+        int depth;
+        boolean querySuccess = true;
+
+        // get request params.
+        double requestULLon = requestParams.get("ullon");
+        double requestULLat = requestParams.get("ullat");
+        double requestLRLon = requestParams.get("lrlon");
+        double requestLRLat = requestParams.get("lrlat");
+        double w = requestParams.get("w");
+        //double h = requestParams.get("h");
+
+        // check whether request params is valid.
+        querySuccess = validateRequestParams(requestULLon, requestULLat,
+                                                requestLRLon, requestLRLat);
+
+        results.put("query_success", querySuccess);
+
+        // calculate the optimal depth.
+        double requestLonDPP = (requestLRLon - requestULLon) / w;
+        depth = calcOptimalDepth(requestLonDPP);
+        int k = (int) Math.pow(2, depth) - 1;
+
+        results.put("depth", depth);
+
+        // calculate some resulting images index.
+        int startColIndex = calcK(depth, requestULLon, true);
+        int endColIndex = calcK(depth, requestLRLon, true);
+        int startRowIndex = calcK(depth, requestULLat, false);
+        int endRowIndex = calcK(depth, requestLRLat, false);
+
+        // calc raster_ul(lr)_lon(lat) according to index.
+        rasterULLon = calcRasterParms(depth, startColIndex, true, false);
+        rasterULLat = calcRasterParms(depth, startRowIndex, false, false);
+        rasterLRLon = calcRasterParms(depth, endColIndex, true, true);
+        rasterLRLat = calcRasterParms(depth, endRowIndex, false, true);
+
+        results.put("raster_ul_lon", rasterULLon);
+        results.put("raster_ul_lat", rasterULLat);
+        results.put("raster_lr_lon", rasterLRLon);
+        results.put("raster_lr_lat", rasterLRLat);
+
+        // fill in render grid.
+        int rowLength = endRowIndex - startRowIndex + 1;
+        int colLength = endColIndex - startColIndex + 1;
+        renderGrid = new String[rowLength][colLength];
+        for (int i = 0; i < rowLength; i += 1) {
+            for (int j = 0; j < colLength; j += 1) {
+                renderGrid[i][j] = "d" + depth + "_x" + (j + startColIndex) + "_y" + (i + startRowIndex) + ".png";  // e.g. d2_x1_y2;
+            }
+        }
+
+        results.put("render_grid", renderGrid);
+
         return results;
+    }
+
+    /**
+     * Return true if parameters of input query is valid.
+     */
+    private boolean validateRequestParams(double ul_lon, double ul_lat, double lr_lon, double lr_lat) {
+        boolean insideWorldMap = true;
+        boolean validULLR = true;
+
+        // check whether parameters is completely out of world map.
+        if (Double.compare(ul_lon, ROOT_LRLON) > 0
+            || Double.compare(ul_lat, ROOT_LRLAT) < 0
+            || Double.compare(lr_lon, ROOT_ULLON) < 0
+            || Double.compare(lr_lat, ROOT_ULLAT) > 0) {
+            insideWorldMap = false;
+        }
+
+        // check whether lr_lon is less than ul_lon and lr_lat is greater than ul_lat.
+        if (Double.compare(lr_lon, ul_lon) <= 0
+            || Double.compare(lr_lat, ul_lat) >= 0) {
+            validULLR = false;
+        }
+
+        return insideWorldMap && validULLR;
+    }
+
+    /**
+     * Return the optimal depth based on LonDPP(longitudinal distance per pixel).
+     */
+    private int calcOptimalDepth(double requestLonDPP) {
+        double depth0LonDPP = (ROOT_LRLON - ROOT_ULLON) / TILE_SIZE;
+
+        int depth = (int) Math.ceil((Math.log(requestLonDPP / depth0LonDPP) / Math.log(0.5)));
+        if (depth > 7) {
+            depth = 7;
+        }
+
+        return depth;
+    }
+
+    /**
+     * Calculate the k of dk_xk_yk.
+     */
+    private int calcK(int depth, double pos, boolean isLon) {
+        int len = (int) Math.pow(2, depth);
+        double distance;
+        double sizeOfOneImg;
+        if (isLon) {
+            sizeOfOneImg = (ROOT_LRLON - ROOT_ULLON) / len;
+            distance = pos - ROOT_ULLON;
+        } else {
+            sizeOfOneImg = (ROOT_ULLAT - ROOT_LRLAT) / len;
+            distance = ROOT_ULLAT - pos;
+        }
+
+        int k = (int) Math.floor(distance / sizeOfOneImg);
+        return k;
+    }
+
+    /**
+     * Calculate raster longitude or latitude.
+     */
+    private double calcRasterParms(int depth, int n, boolean isLon, boolean isLR) {
+        int len = (int) Math.pow(2, depth);
+        double sizeOfOneImg;
+        double res;
+        if (isLon) {
+            sizeOfOneImg = (ROOT_LRLON - ROOT_ULLON) / len;
+            res = ROOT_ULLON + n * sizeOfOneImg;
+            if (isLR) {
+                res += sizeOfOneImg;
+            }
+        } else {
+            sizeOfOneImg = (ROOT_ULLAT - ROOT_LRLAT) / len;
+            res = ROOT_ULLAT - n * sizeOfOneImg;
+            if (isLR) {
+                res -= sizeOfOneImg;
+            }
+        }
+
+        return res;
     }
 
     @Override
